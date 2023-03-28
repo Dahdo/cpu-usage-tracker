@@ -23,6 +23,11 @@ pthread_t reader_tid, analyzer_tid;
 // circular ring buffer semaphores
 sem_t empty_count, filled_count, ring_buff_sem;
 
+// buffers to be used in analyzer thread
+cpu_stats_t *curr_stats;
+cpu_stats_t *prev_stats;
+char *ring_buff_str;
+
 int main()
 {
     // initializing ring buffer
