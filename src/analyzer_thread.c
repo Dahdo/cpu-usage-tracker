@@ -59,6 +59,14 @@ static void cpu_stats_init(cpu_stats_t *cpu_stats, char *ring_buff_str, UINT cpu
     }
 }
 
+static void cpu_stats_copy(cpu_stats_t *dest_cpu_stats, cpu_stats_t *source_cpu_stats)
+{
+    *dest_cpu_stats = *source_cpu_stats;
+    for (UINT i = 0; i < source_cpu_stats->cpu_count; i++)
+        for (UINT j = 0; j < source_cpu_stats->num_sections; j++)
+            dest_cpu_stats->attr[i][j] = source_cpu_stats->attr[i][j];
+}
+
 void cpu_stats_mem_alloc(cpu_stats_t **cpu_stats, UINT cpu_count)
 {
     *cpu_stats = malloc(sizeof(cpu_stats_t) + cpu_count * sizeof(long int *));
