@@ -28,6 +28,11 @@ cpu_stats_t *curr_stats;
 cpu_stats_t *prev_stats;
 char *ring_buff_str;
 
+// for analyzer thread - printer thread communication
+double *analyzr_printr_arr;
+sem_t analyzr_printr_arr_sem;
+UINT num_cpus;
+
 int main()
 {
     // initializing ring buffer
@@ -38,6 +43,7 @@ int main()
     sem_init(&empty_count, 0, RING_BUFFER_SIZE);
     sem_init(&filled_count, 0, 0);
     sem_init(&ring_buff_sem, 0, 1);
+    sem_init(&analyzr_printr_arr_sem, 0, 1);
 
     // creating threads
     if (pthread_create(&reader_tid, NULL, reader_routine, NULL) != 0)
@@ -64,5 +70,6 @@ int main()
     sem_destroy(&empty_count);
     sem_destroy(&filled_count);
     sem_destroy(&ring_buff_sem);
+    sem_destroy(&analyzr_printr_arr_sem);
     exit(EXIT_SUCCESS);
 }

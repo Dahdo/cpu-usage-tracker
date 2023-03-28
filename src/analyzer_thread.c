@@ -18,6 +18,9 @@ extern sem_t empty_count;
 extern sem_t filled_count;
 extern sem_t ring_buff_sem;
 extern cbuf_handle_t ring_buff;
+extern sem_t analyzr_printr_arr_sem;
+extern double *analyzr_printr_arr;
+extern UINT num_cpus;
 
 struct cpu_stats_t // struct to hold one second's cpu data
 {
@@ -84,6 +87,29 @@ void cpu_stats_mem_dealloc(cpu_stats_t *cpu_stats)
     for (UINT i = 0; i < cpu_count; i++)
         free(cpu_stats->attr[i]);
     free(cpu_stats);
+}
+
+static void calculate_stats(cpu_stats_t *curr_stats, cpu_stats_t *prev_stats, UINT cpu_count)
+{
+    // cpu_stats_t.attr corresponds to:
+    //[user, nice, system, idle, iowait, irq, softirq, steal, guest, guest_nice]
+    for (UINT i = 0; i < cpu_count; i++)
+    {
+        long int prev_idle = prev_stats->attr[i][3] + prev_stats->attr[i][4];
+        long int idle = curr_stats->attr[i][3] + curr_stats->attr[i][4];
+
+        long int prev_non_idle = prev_stats->attr[i][0] + prev_stats->attr[i][1] +
+                                 prev_stats->attr[i][2] + prev_stats->attr[i][5] + prev_stats->attr[i][6] + prev_stats->attr[i][7];
+        long int non_idle = curr_stats->attr[i][0] + curr_stats->attr[i][1] + curr_stats->attr[i][2] + curr_stats->attr[i][5] + curr_stats->attr[i][6] + curr_stats->attr[i][7];
+
+        long int prev_total = prev_idle + prev_non_idle;
+        long int total = idle + non_idle;
+
+        long int totald = total - prev_total;
+        long int idled = idle - prev_idle;
+
+        analyzr_printr_arr[i] = (double)(totald - idled) / totald * 100;
+    }
 }
 
 void *analyzer_routine()
