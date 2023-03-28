@@ -1,9 +1,11 @@
+#define _XOPEN_SOURCE 500 // incorporating POSIX 1995 to avoid errors/warnings(in editor) with struct sigaction
 #include <pthread.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <semaphore.h>
 #include <string.h>
 #include <stdatomic.h>
+#include <signal.h>
 
 #include "../include/circular_buffer.h"
 #include "../include/reader_thread.h"
@@ -36,8 +38,23 @@ sem_t analyzr_printr_arr_sem;
 UINT num_cpus;
 volatile atomic_int analyzr_printr_sync = 0;
 
+// sigterm handler
+void sigterm_handler()
+{
+    pthread_cancel(reader_tid);
+    pthread_cancel(analyzer_tid);
+    pthread_cancel(printer_tid);
+}
+
 int main()
 {
+    //sigterm initialization
+    struct sigaction action;
+    memset(&action, 0, sizeof(struct sigaction));
+    action.sa_handler = sigterm_handler;
+    if (-1 == sigaction(SIGTERM, &action, NULL))
+        ERR("error sigterm");
+
     // initializing ring buffer
     buffer = malloc(RING_BUFFER_SIZE * sizeof(char));
     ring_buff = circular_buf_init(buffer, RING_BUFFER_SIZE);
