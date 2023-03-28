@@ -176,6 +176,9 @@ void *analyzer_routine()
             if (curr_stats && prev_stats)
                 feed_printer(curr_stats, prev_stats, cpu_count);
 
+            ring_buff_str[0] = '\0'; // resetting the ring_buff_str content
+            cpu_count = 0;
+
             if (NULL == prev_stats)
                 cpu_stats_mem_alloc(&prev_stats, curr_stats->cpu_count);
             cpu_stats_copy(prev_stats, curr_stats);//keep the prev second's data
