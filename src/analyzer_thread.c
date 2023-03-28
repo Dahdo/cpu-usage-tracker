@@ -26,6 +26,39 @@ struct cpu_stats_t // struct to hold one second's cpu data
     long int *attr[]; //an cpu_count array(of size cpu_count) of pointers to arrays of length num_sections
 };
 
+static void stats_attr_init(long int *stats_attr, char *cpu_line, UINT num_sections)
+{
+    char *context = NULL;
+    char *token = strtok_r(cpu_line, " ", &context);
+
+    UINT count = 0;
+    while ((token = strtok_r(NULL, " ", &context))) {
+
+        if (count < num_sections) {
+            stats_attr[count++] = strtol(token, NULL, 10);
+        }
+    }
+}
+
+static void cpu_stats_init(cpu_stats_t *cpu_stats, char *ring_buff_str, UINT cpu_count)
+{
+    cpu_stats->cpu_count = cpu_count;
+    cpu_stats->num_sections = 10; // num of sections in the file /proc/stat as of current linux kernel
+
+    char *context = NULL;
+    char *cpu_line_token = strtok_r(ring_buff_str, "\n", &context);
+
+    UINT count = 0;
+    if (NULL != cpu_line_token) {
+        stats_attr_init(cpu_stats->attr[count++], cpu_line_token, cpu_stats->num_sections);
+    }
+
+    while ((cpu_line_token = strtok_r(NULL, "\n", &context))) {
+        if (count < cpu_stats->cpu_count)
+            stats_attr_init(cpu_stats->attr[count++], cpu_line_token, cpu_stats->num_sections);
+    }
+}
+
 void cpu_stats_mem_alloc(cpu_stats_t **cpu_stats, UINT cpu_count)
 {
     *cpu_stats = malloc(sizeof(cpu_stats_t) + cpu_count * sizeof(long int *));
@@ -90,6 +123,7 @@ void *analyzer_routine()
                 cpu_stats_mem_alloc(&curr_stats, cpu_count);
 
             // initializing the curr_stats
+            cpu_stats_init(curr_stats, ring_buff_str, cpu_count);
 
             //read data i.e send to printer thread
 

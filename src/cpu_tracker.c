@@ -54,6 +54,11 @@ int main()
     // memory deallocation
     free(buffer);
     circular_buf_free(ring_buff);
+    free(ring_buff_str);
+    if (curr_stats)
+        cpu_stats_mem_dealloc(curr_stats);
+    if (prev_stats)
+        cpu_stats_mem_dealloc(prev_stats);
 
     // semaphores destruction
     sem_destroy(&empty_count);
