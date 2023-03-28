@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <semaphore.h>
 #include <string.h>
+#include <stdatomic.h>
 
 #include "../include/circular_buffer.h"
 #include "../include/reader_thread.h"
@@ -33,6 +34,7 @@ char *ring_buff_str;
 double *analyzr_printr_arr;
 sem_t analyzr_printr_arr_sem;
 UINT num_cpus;
+volatile atomic_int analyzr_printr_sync = 0;
 
 int main()
 {

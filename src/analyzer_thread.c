@@ -21,6 +21,7 @@ extern cbuf_handle_t ring_buff;
 extern sem_t analyzr_printr_arr_sem;
 extern double *analyzr_printr_arr;
 extern UINT num_cpus;
+extern volatile atomic_int analyzr_printr_sync;
 
 struct cpu_stats_t // struct to hold one second's cpu data
 {
@@ -114,15 +115,19 @@ static void calculate_stats(cpu_stats_t *curr_stats, cpu_stats_t *prev_stats, UI
 
 void feed_printer(cpu_stats_t *curr_stats, cpu_stats_t *prev_stats, UINT cpu_count)
 {
-    sem_wait(&analyzr_printr_arr_sem);
-    if (NULL == analyzr_printr_arr)
-        analyzr_printr_arr = malloc(cpu_count * sizeof(double));
-    if (NULL == analyzr_printr_arr) {
-        ERR("can't allocate mem for analyzr_printr_arr. exiting...");
+    if (!analyzr_printr_sync)
+    {
+        sem_wait(&analyzr_printr_arr_sem);
+        if (NULL == analyzr_printr_arr)
+            analyzr_printr_arr = malloc(cpu_count * sizeof(double));
+        if (NULL == analyzr_printr_arr) {
+            ERR("can't allocate mem for analyzr_printr_arr. exiting...");
+        }
+        calculate_stats(curr_stats, prev_stats, cpu_count);
+        num_cpus = curr_stats->cpu_count;
+        sem_post(&analyzr_printr_arr_sem);
+        analyzr_printr_sync = 1;
     }
-    calculate_stats(curr_stats, prev_stats, cpu_count);
-    num_cpus = curr_stats->cpu_count;
-    sem_post(&analyzr_printr_arr_sem);
 }
 
 void *analyzer_routine()
