@@ -112,6 +112,19 @@ static void calculate_stats(cpu_stats_t *curr_stats, cpu_stats_t *prev_stats, UI
     }
 }
 
+void feed_printer(cpu_stats_t *curr_stats, cpu_stats_t *prev_stats, UINT cpu_count)
+{
+    sem_wait(&analyzr_printr_arr_sem);
+    if (NULL == analyzr_printr_arr)
+        analyzr_printr_arr = malloc(cpu_count * sizeof(double));
+    if (NULL == analyzr_printr_arr) {
+        ERR("can't allocate mem for analyzr_printr_arr. exiting...");
+    }
+    calculate_stats(curr_stats, prev_stats, cpu_count);
+    num_cpus = curr_stats->cpu_count;
+    sem_post(&analyzr_printr_arr_sem);
+}
+
 void *analyzer_routine()
 {
     extern cpu_stats_t *curr_stats; //to hold the current second data
@@ -160,10 +173,12 @@ void *analyzer_routine()
             cpu_stats_init(curr_stats, ring_buff_str, cpu_count);
 
             //read data i.e send to printer thread
+            if (curr_stats && prev_stats)
+                feed_printer(curr_stats, prev_stats, cpu_count);
 
             if (NULL == prev_stats)
                 cpu_stats_mem_alloc(&prev_stats, curr_stats->cpu_count);
-            //cpu_stats_copy(prev_stats, curr_stats);//keep the prev second's data
+            cpu_stats_copy(prev_stats, curr_stats);//keep the prev second's data
         }
         sem_post(&ring_buff_sem);
         sem_post(&empty_count);
