@@ -7,6 +7,7 @@
 #include "../include/circular_buffer.h"
 #include "../include/reader_thread.h"
 #include "../include/analyzer_thread.h"
+#include "../include/printer_thread.h"
 
 #define RING_BUFFER_SIZE 60
 #define ERR(source) (perror(source),                                                           \
@@ -18,7 +19,7 @@ char *buffer;
 cbuf_handle_t ring_buff;
 
 // threads tids
-pthread_t reader_tid, analyzer_tid;
+pthread_t reader_tid, analyzer_tid, printer_tid;
 
 // circular ring buffer semaphores
 sem_t empty_count, filled_count, ring_buff_sem;
@@ -50,12 +51,16 @@ int main()
         ERR("can't create reader thread");
      if (pthread_create(&analyzer_tid, NULL, analyzer_routine, NULL) != 0)
         ERR("can't create analyzer thread");
+    if (pthread_create(&printer_tid, NULL, printer_routine, NULL) != 0)
+        ERR("can't create printer thread");
 
     // thread joining
     if (pthread_join(reader_tid, NULL) != 0)
         ERR("Can't join reader thread");
     if (pthread_join(analyzer_tid, NULL) != 0)
         ERR("Can't join analyzer thread");
+    if (pthread_join(printer_tid, NULL) != 0)
+        ERR("Can't join printer thread");
 
     // memory deallocation
     free(buffer);

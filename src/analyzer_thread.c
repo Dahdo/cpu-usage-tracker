@@ -142,7 +142,6 @@ void *analyzer_routine()
 
     while (1)
     {
-
         sem_wait(&filled_count);
         sem_wait(&ring_buff_sem);
 
