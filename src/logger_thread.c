@@ -24,11 +24,6 @@ static int write_data(int fd)
     return c;
 }
 
-void logger_log(int severity, const char *date, const char *time, const char *file, int line, const char *descr, ...)
-{
-    //write data to file
-}
-
 static void realloc_logger_buff(int size)
 {
     logger_buff = realloc(logger_buff, sizeof(char) * size);
@@ -48,6 +43,19 @@ static void close_fd(void *args)
 {
     int fd = *((int *)args);
     TEMP_FAILURE_RETRY(close(fd));
+}
+
+void logger_log(int severity, const char *date, const char *time, const char *file, int line, const char *descr, ...)
+{
+    sem_wait(&logger_buff_sem);
+
+    // if ('\0' == logger_buff[0]) {// modify the buffer only after it has been written to file
+    //     int size = calc_buff_size(levels_str[severity], date, time, file, line, descr);
+    //     realloc_logger_buff(size);
+    //     sprintf(logger_buff, "%s : %s : %s : %s : %d : %s\n", date, time, levels_str[severity], file, line, descr);
+    // }
+
+    sem_post(&logger_buff_sem);
 }
 
 void *logger_routine()
