@@ -24,6 +24,21 @@ void logger_log(int severity, const char *date, const char *time, const char *fi
     //write data to file
 }
 
+static void realloc_logger_buff(int size)
+{
+    logger_buff = realloc(logger_buff, sizeof(char) * size);
+    if (NULL == logger_buff)
+        ERR("Can't reallocate memory for logger_str_buff");
+}
+
+void alloc_logger_buff(int size)
+{
+    logger_buff = malloc(size * sizeof(char));
+    if (NULL == logger_buff)
+        ERR("Can't allocate memory for logger_str_buff");
+    logger_buff[0] = '\0'; //to supress errors with writing to uninitialized buffer
+}
+
 static void close_fd(void *args)
 {
     int fd = *((int *)args);
@@ -40,7 +55,7 @@ void *logger_routine()
 
     while (1)
     {
-
+        
     }
     pthread_cleanup_pop(0);
     pthread_exit(0);
