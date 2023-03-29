@@ -32,6 +32,15 @@ static void init_time()
     sem_post(&watchdog_time_sem);
 }
 
+static double get_time_diff(struct timespec *start)
+{
+    struct timespec end;
+    if (clock_gettime(CLOCK_REALTIME, &end))
+        log_error("can't initialize end");
+
+    return (end.tv_sec - start->tv_sec) + (end.tv_nsec - start->tv_nsec) / BILLION;
+}
+
 void *watchdog_routine()
 {
     pthread_setcanceltype(PTHREAD_CANCEL_ASYNCHRONOUS, NULL);
