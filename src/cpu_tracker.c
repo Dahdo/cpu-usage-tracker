@@ -103,6 +103,7 @@ int main()
     if (prev_stats)
         cpu_stats_mem_dealloc(prev_stats);
     free(logger_buff);
+    free(analyzr_printr_arr);
 
     // semaphores destruction
     sem_destroy(&empty_count);
