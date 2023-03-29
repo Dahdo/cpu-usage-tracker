@@ -18,6 +18,11 @@ extern sem_t logger_buff_sem;
 
 static char *levels_str[] = {
     "DEBUG", "INFO", "WARN", "ERROR", "FATAL"};
+static int write_data(int fd)
+{
+    int c = TEMP_FAILURE_RETRY(write(fd, logger_buff, strlen(logger_buff)));
+    return c;
+}
 
 void logger_log(int severity, const char *date, const char *time, const char *file, int line, const char *descr, ...)
 {
@@ -55,7 +60,7 @@ void *logger_routine()
 
     while (1)
     {
-        
+
     }
     pthread_cleanup_pop(0);
     pthread_exit(0);
