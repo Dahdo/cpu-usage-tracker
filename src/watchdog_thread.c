@@ -11,6 +11,8 @@
 #include "../include/logger_thread.h"
 
 #define NUMTHREADS 4 //excluding itself
+#define TIMEOUT 2
+#define BILLION 1000000000L
 
 static struct timespec *time_start;
 extern sem_t watchdog_time_sem;
@@ -51,7 +53,7 @@ void *watchdog_routine()
         for (int i = 0; i < NUMTHREADS; i++)
         {
             sem_wait(&watchdog_time_sem);
-            
+
             double diff_time = get_time_diff(&time_start[i]);
 
             sem_post(&watchdog_time_sem);
