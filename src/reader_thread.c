@@ -7,10 +7,7 @@
 #include <errno.h>
 #include <signal.h>
 #include "../include/reader_thread.h"
-
-#define ERR(source) (perror(source),                                                           \
-                     fprintf(stderr, "%s:%d:%s:%s\n", __FILE__, __LINE__, __DATE__, __TIME__), \
-                     exit(EXIT_FAILURE))
+#include "../include/logger_thread.h"
 
 #define SEMAPHORES_WAIT     \
     sem_wait(&empty_count); \
@@ -24,9 +21,9 @@ static char fd_read_single(int fd)
     char *char_buff = malloc(sizeof(char));
     int c = TEMP_FAILURE_RETRY(read(fd, char_buff, sizeof(char)));
     if (c < 0)
-        ERR("can't read in fd_read_single");
+        log_error("can't read in fd_read_single");
     else if (c == 0)
-        ERR("EOF reached in fd_read_single");
+        log_error("EOF reached in fd_read_single");
     char read_char = *char_buff;
     free(char_buff);
     return read_char;
@@ -44,8 +41,10 @@ void *reader_routine()
     while (1)
     {
         int fd;
-        if ((fd = TEMP_FAILURE_RETRY(open("/proc/stat", O_RDONLY))) < 0)
-            ERR("error opening file descriptor fd. exiting...");
+        if ((fd = TEMP_FAILURE_RETRY(open("/proc/stat", O_RDONLY))) < 0) {
+            log_fatal("error opening file descriptor fd. exiting...");
+            kill(getpid(), SIGTERM);
+        }
 
         char curr_char = fd_read_single(fd);
         char prev_char;
