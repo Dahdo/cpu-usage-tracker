@@ -9,6 +9,7 @@
 #include "../include/circular_buffer.h"
 #include "../include/analyzer_thread.h"
 #include "../include/logger_thread.h"
+#include "../include/watchdog_thread.h"
 
 #define DEFAULT_STRING_SIZE 128
 extern sem_t empty_count;
@@ -146,6 +147,9 @@ void *analyzer_routine()
 
     while (1)
     {
+        // notify watchdog
+        watchdog_notify(1);
+        
         sem_wait(&filled_count);
         sem_wait(&ring_buff_sem);
 

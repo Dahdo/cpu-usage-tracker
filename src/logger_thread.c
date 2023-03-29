@@ -8,6 +8,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include "../include/logger_thread.h"
+#include "../include/watchdog_thread.h"
 
 #define ERR(source) (perror(source),                                 \
                      fprintf(stderr, "%s:%d\n", __FILE__, __LINE__), \
@@ -79,6 +80,9 @@ void *logger_routine()
 
     while (1)
     {
+        // notify watchdog
+        watchdog_notify(3);
+
         sem_wait(&logger_buff_sem);
         if ('\0' != logger_buff[0])
         { // only write if logger_buff not empty

@@ -8,6 +8,7 @@
 #include <signal.h>
 #include "../include/reader_thread.h"
 #include "../include/logger_thread.h"
+#include "../include/watchdog_thread.h"
 
 #define SEMAPHORES_WAIT     \
     sem_wait(&empty_count); \
@@ -40,6 +41,9 @@ void *reader_routine()
     pthread_setcanceltype(PTHREAD_CANCEL_ASYNCHRONOUS, NULL);
     while (1)
     {
+        // notify watchdog
+        watchdog_notify(0);
+
         int fd;
         if ((fd = TEMP_FAILURE_RETRY(open("/proc/stat", O_RDONLY))) < 0) {
             log_fatal("error opening file descriptor fd. exiting...");

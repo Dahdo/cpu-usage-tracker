@@ -2,8 +2,9 @@
 #include <semaphore.h>
 #include <stdatomic.h>
 #include <stdio.h>
-
 #include "../include/printer_thread.h"
+#include "../include/watchdog_thread.h"
+
 #define UINT unsigned int
 
 void *printer_routine()
@@ -16,6 +17,9 @@ void *printer_routine()
     pthread_setcanceltype(PTHREAD_CANCEL_ASYNCHRONOUS, NULL);
     while (1)
     {
+        // notify watchdog
+        watchdog_notify(2);
+
         if (analyzr_printr_sync)
         {
             sem_wait(&analyzr_printr_arr_sem);
