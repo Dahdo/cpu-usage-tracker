@@ -11,6 +11,7 @@
 #include "../include/reader_thread.h"
 #include "../include/analyzer_thread.h"
 #include "../include/printer_thread.h"
+#include "../include/logger_thread.h"
 
 #define RING_BUFFER_SIZE 60
 #define ERR(source) (perror(source),                                                           \
@@ -22,7 +23,7 @@ char *buffer;
 cbuf_handle_t ring_buff;
 
 // threads tids
-pthread_t reader_tid, analyzer_tid, printer_tid;
+pthread_t reader_tid, analyzer_tid, printer_tid, logger_tid;
 
 // circular ring buffer semaphores
 sem_t empty_count, filled_count, ring_buff_sem;
@@ -44,6 +45,7 @@ void sigterm_handler()
     pthread_cancel(reader_tid);
     pthread_cancel(analyzer_tid);
     pthread_cancel(printer_tid);
+    pthread_cancel(logger_tid);
 }
 
 int main()
@@ -72,6 +74,8 @@ int main()
         ERR("can't create analyzer thread");
     if (pthread_create(&printer_tid, NULL, printer_routine, NULL) != 0)
         ERR("can't create printer thread");
+    if(pthread_create(&logger_tid, NULL, logger_routine, NULL) != 0)
+        ERR("can't create logger thread");
 
     // thread joining
     if (pthread_join(reader_tid, NULL) != 0)
@@ -80,6 +84,8 @@ int main()
         ERR("Can't join analyzer thread");
     if (pthread_join(printer_tid, NULL) != 0)
         ERR("Can't join printer thread");
+    if (pthread_join(logger_tid, NULL) != 0)
+        ERR("Can't join logger thread");
 
     // memory deallocation
     free(buffer);
