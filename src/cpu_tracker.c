@@ -45,6 +45,7 @@ volatile atomic_int analyzr_printr_sync = 0;
 // sigterm handler
 void sigterm_handler()
 {
+    log_fatal("SIGTERM received. exiting...");
     pthread_cancel(reader_tid);
     pthread_cancel(analyzer_tid);
     pthread_cancel(printer_tid);

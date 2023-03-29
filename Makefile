@@ -32,4 +32,4 @@ run: cputracker
 	./cputracker
 
 clear:
-	-rm -f cputracker $(OBJECTS)
+	-rm -f cputracker $(OBJECTS) log-cputracker
