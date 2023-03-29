@@ -48,7 +48,38 @@ void *watchdog_routine()
     pthread_cleanup_push(free, time_start);
     while (1)
     {
-        
+        for (int i = 0; i < NUMTHREADS; i++)
+        {
+            sem_wait(&watchdog_time_sem);
+            
+            double diff_time = get_time_diff(&time_start[i]);
+
+            sem_post(&watchdog_time_sem);
+
+            if (diff_time > TIMEOUT)
+            {
+                switch (i)
+                {
+                case 0:
+                    log_fatal("reader thread time out. exiting...");
+                    break;
+                case 1:
+                    log_fatal("analyzer thread time out. exiting...");
+                    break;
+                case 2:
+                    log_fatal("printer thread time out. exiting...");
+                    break;
+                case 3:
+                    log_fatal("logger thread time out. exiting...");
+                    break;
+                default:
+                    log_fatal("unknown time out. exiting...");
+                    break;
+                }
+                sleep(1); // some time to log before termination
+                kill(getpid(), SIGTERM);
+            }
+        }
     }
     pthread_cleanup_pop(0);
     pthread_exit(0);
