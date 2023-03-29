@@ -79,7 +79,15 @@ void *logger_routine()
 
     while (1)
     {
-
+        sem_wait(&logger_buff_sem);
+        if ('\0' != logger_buff[0])
+        { // only write if logger_buff not empty
+            int writeCount = write_data(fd);
+            if ((size_t)writeCount != strlen(logger_buff))
+                ERR("log partially written");
+            logger_buff[0] = '\0';
+        }
+        sem_post(&logger_buff_sem);
     }
     pthread_cleanup_pop(0);
     pthread_exit(0);

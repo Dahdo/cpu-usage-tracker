@@ -71,6 +71,9 @@ int main()
     sem_init(&analyzr_printr_arr_sem, 0, 1);
     sem_init(&logger_buff_sem, 0, 1);
 
+    // alloc mem for logger_buff
+    alloc_logger_buff(10);
+
     // creating threads
     if (pthread_create(&reader_tid, NULL, reader_routine, NULL) != 0)
         ERR("can't create reader thread");
