@@ -8,10 +8,7 @@
 #include <stdio.h>
 #include "../include/circular_buffer.h"
 #include "../include/analyzer_thread.h"
-
-#define ERR(source) (perror(source),                                                           \
-                     fprintf(stderr, "%s:%d:%s:%s\n", __FILE__, __LINE__, __DATE__, __TIME__), \
-                     exit(EXIT_FAILURE))
+#include "../include/logger_thread.h"
 
 #define DEFAULT_STRING_SIZE 128
 extern sem_t empty_count;
@@ -75,7 +72,8 @@ void cpu_stats_mem_alloc(cpu_stats_t **cpu_stats, UINT cpu_count)
 {
     *cpu_stats = malloc(sizeof(cpu_stats_t) + cpu_count * sizeof(long int *));
     if (NULL == cpu_stats) {
-        ERR("error allocating cpu_stats. exiting...");
+        log_fatal("error allocating cpu_stats. exiting...");
+        kill(getpid(), SIGTERM);
     }
     (*cpu_stats)->num_sections = 10;
     for (UINT i = 0; i < cpu_count; i++)
@@ -121,7 +119,8 @@ void feed_printer(cpu_stats_t *curr_stats, cpu_stats_t *prev_stats, UINT cpu_cou
         if (NULL == analyzr_printr_arr)
             analyzr_printr_arr = malloc(cpu_count * sizeof(double));
         if (NULL == analyzr_printr_arr) {
-            ERR("can't allocate mem for analyzr_printr_arr. exiting...");
+            log_fatal("can't allocate mem for analyzr_printr_arr. exiting...");
+            kill(getpid(), SIGTERM);
         }
         calculate_stats(curr_stats, prev_stats, cpu_count);
         num_cpus = curr_stats->cpu_count;
@@ -156,7 +155,8 @@ void *analyzer_routine()
         {
             ring_buff_str = realloc(ring_buff_str, sizeof(char) * (curr_str_size += 8));
             if (NULL == ring_buff_str){
-                ERR("can't realloc ring_buff_str");
+                log_fatal("can't reallocate ring_buff_str. exiting...");
+                kill(getpid(), SIGTERM);
             }
         }
 
