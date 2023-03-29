@@ -26,12 +26,15 @@ cbuf_handle_t ring_buff;
 pthread_t reader_tid, analyzer_tid, printer_tid, logger_tid;
 
 // circular ring buffer semaphores
-sem_t empty_count, filled_count, ring_buff_sem;
+sem_t empty_count, filled_count, ring_buff_sem, logger_buff_sem;
 
 // buffers to be used in analyzer thread
 cpu_stats_t *curr_stats;
 cpu_stats_t *prev_stats;
 char *ring_buff_str;
+
+// logger thread buffer
+char *logger_buff;
 
 // for analyzer thread - printer thread communication
 double *analyzr_printr_arr;
@@ -66,6 +69,7 @@ int main()
     sem_init(&filled_count, 0, 0);
     sem_init(&ring_buff_sem, 0, 1);
     sem_init(&analyzr_printr_arr_sem, 0, 1);
+    sem_init(&logger_buff_sem, 0, 1);
 
     // creating threads
     if (pthread_create(&reader_tid, NULL, reader_routine, NULL) != 0)
@@ -95,11 +99,13 @@ int main()
         cpu_stats_mem_dealloc(curr_stats);
     if (prev_stats)
         cpu_stats_mem_dealloc(prev_stats);
+    free(logger_buff);
 
     // semaphores destruction
     sem_destroy(&empty_count);
     sem_destroy(&filled_count);
     sem_destroy(&ring_buff_sem);
     sem_destroy(&analyzr_printr_arr_sem);
+    sem_destroy(&logger_buff_sem);
     exit(EXIT_SUCCESS);
 }
