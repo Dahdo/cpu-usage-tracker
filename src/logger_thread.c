@@ -44,16 +44,27 @@ static void close_fd(void *args)
     int fd = *((int *)args);
     TEMP_FAILURE_RETRY(close(fd));
 }
-
+int digit_count(int n)
+{
+    if (n / 10 == 0)
+        return 1;
+    return 1 + digit_count(n / 10);
+}
+static int calc_buff_size(const char *severity, const char *date, const char *time, const char *file, int line, const char *descr)
+{
+    int size = strlen(severity) + strlen(date) + strlen(time) + strlen(file) + strlen(descr) + digit_count(line);
+    size += 17; // extra chars for formatting (: and spaces)  and '\0'
+    return size;
+}
 void logger_log(int severity, const char *date, const char *time, const char *file, int line, const char *descr, ...)
 {
     sem_wait(&logger_buff_sem);
 
-    // if ('\0' == logger_buff[0]) {// modify the buffer only after it has been written to file
-    //     int size = calc_buff_size(levels_str[severity], date, time, file, line, descr);
-    //     realloc_logger_buff(size);
-    //     sprintf(logger_buff, "%s : %s : %s : %s : %d : %s\n", date, time, levels_str[severity], file, line, descr);
-    // }
+    if ('\0' == logger_buff[0]) {// modify the buffer only after it has been written to file
+        int size = calc_buff_size(levels_str[severity], date, time, file, line, descr);
+        realloc_logger_buff(size);
+        sprintf(logger_buff, "%s : %s : %s : %s : %d : %s\n", date, time, levels_str[severity], file, line, descr);
+    }
 
     sem_post(&logger_buff_sem);
 }
