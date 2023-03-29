@@ -17,6 +17,17 @@
 static struct timespec *time_start;
 extern sem_t watchdog_time_sem;
 
+void watchdog_notify(int threadno)
+{
+    sem_wait(&watchdog_time_sem);
+    if (NULL != time_start)
+    {
+        if (clock_gettime(CLOCK_REALTIME, &time_start[threadno]) == -1)
+            log_error("can't reinitialize time_start array element");
+    }
+    sem_post(&watchdog_time_sem);
+}
+
 static void init_time()
 {
     sem_wait(&watchdog_time_sem);
