@@ -12,6 +12,7 @@
 #include "../include/analyzer_thread.h"
 #include "../include/printer_thread.h"
 #include "../include/logger_thread.h"
+#include "../include/watchdog_thread.h"
 
 #define RING_BUFFER_SIZE 60
 #define ERR(source) (perror(source),                                                           \
@@ -23,10 +24,10 @@ char *buffer;
 cbuf_handle_t ring_buff;
 
 // threads tids
-pthread_t reader_tid, analyzer_tid, printer_tid, logger_tid;
+pthread_t reader_tid, analyzer_tid, printer_tid, logger_tid, watchdog_tid;
 
 // circular ring buffer semaphores
-sem_t empty_count, filled_count, ring_buff_sem, logger_buff_sem;
+sem_t empty_count, filled_count, ring_buff_sem, logger_buff_sem, watchdog_time_sem;
 
 // buffers to be used in analyzer thread
 cpu_stats_t *curr_stats;
@@ -50,6 +51,7 @@ void sigterm_handler()
     pthread_cancel(analyzer_tid);
     pthread_cancel(printer_tid);
     pthread_cancel(logger_tid);
+    pthread_cancel(watchdog_tid);
 }
 
 int main()
@@ -71,6 +73,7 @@ int main()
     sem_init(&ring_buff_sem, 0, 1);
     sem_init(&analyzr_printr_arr_sem, 0, 1);
     sem_init(&logger_buff_sem, 0, 1);
+    sem_init(&watchdog_time_sem, 0, 1);
 
     // alloc mem for logger_buff
     alloc_logger_buff(10);
@@ -84,6 +87,8 @@ int main()
         ERR("can't create printer thread");
     if(pthread_create(&logger_tid, NULL, logger_routine, NULL) != 0)
         ERR("can't create logger thread");
+    if(pthread_create(&watchdog_tid, NULL, watchdog_routine, NULL) != 0)
+        ERR("can't create watchdog thread");
 
     // thread joining
     if (pthread_join(reader_tid, NULL) != 0)
@@ -94,6 +99,8 @@ int main()
         ERR("Can't join printer thread");
     if (pthread_join(logger_tid, NULL) != 0)
         ERR("Can't join logger thread");
+    if (pthread_join(watchdog_tid, NULL) != 0)
+        ERR("Can't join watchdog thread");
 
     // memory deallocation
     free(buffer);
@@ -112,5 +119,6 @@ int main()
     sem_destroy(&ring_buff_sem);
     sem_destroy(&analyzr_printr_arr_sem);
     sem_destroy(&logger_buff_sem);
+    sem_destroy(&watchdog_time_sem);
     exit(EXIT_SUCCESS);
 }

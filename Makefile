@@ -7,8 +7,11 @@ endif
 
 OBJECTS = $(wildcard *.o)
 
-cputracker: reader_thread.o circular_buffer.o analyzer_thread.o printer_thread.o logger_thread.o src/cpu_tracker.c
+cputracker: reader_thread.o circular_buffer.o analyzer_thread.o printer_thread.o logger_thread.o watchdog_thread.o src/cpu_tracker.c
 	$(CC) $(CFLAGS) -o $@ *.o src/cpu_tracker.c
+
+watchdog_thread.o: include/watchdog_thread.h src/watchdog_thread.c
+	$(CC) -c $(CFLAGS) -o $@ src/watchdog_thread.c
 
 logger_thread.o: include/logger_thread.h src/logger_thread.c
 	$(CC) -c $(CFLAGS) -o $@ src/logger_thread.c
