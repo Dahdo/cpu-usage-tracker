@@ -67,6 +67,7 @@ static void cpu_stats_copy(cpu_stats_t *dest_cpu_stats, cpu_stats_t *source_cpu_
     for (UINT i = 0; i < source_cpu_stats->cpu_count; i++)
         for (UINT j = 0; j < source_cpu_stats->num_sections; j++)
             dest_cpu_stats->attr[i][j] = source_cpu_stats->attr[i][j];
+    log_debug("copied data from curr_cpu_stats to prev_cpu_stats");
 }
 
 void cpu_stats_mem_alloc(cpu_stats_t **cpu_stats, UINT cpu_count)
@@ -77,8 +78,13 @@ void cpu_stats_mem_alloc(cpu_stats_t **cpu_stats, UINT cpu_count)
         kill(getpid(), SIGTERM);
     }
     (*cpu_stats)->num_sections = 10;
-    for (UINT i = 0; i < cpu_count; i++)
+    for (UINT i = 0; i < cpu_count; i++){
         (*cpu_stats)->attr[i] = malloc(sizeof(long int) * (*cpu_stats)->num_sections);
+        if(NULL == (*cpu_stats)->attr[i]) {
+            log_fatal("can't allocate memory some cpu_stats->attr[] index. exiting...");
+            kill(getpid(), SIGTERM);
+        }
+    }
 }
 
 void cpu_stats_mem_dealloc(cpu_stats_t *cpu_stats)
@@ -117,8 +123,13 @@ void feed_printer(cpu_stats_t *curr_stats, cpu_stats_t *prev_stats, UINT cpu_cou
     if (!analyzr_printr_sync)
     {
         sem_wait(&analyzr_printr_arr_sem);
-        if (NULL == analyzr_printr_arr)
+        if (NULL == analyzr_printr_arr) {
             analyzr_printr_arr = malloc(cpu_count * sizeof(double));
+            if(NULL == analyzr_printr_arr) {
+                log_fatal("can't allocate memory for analyzr_printr_arr. exiting...");
+                kill(getpid(), SIGTERM);
+            }
+        }
         if (NULL == analyzr_printr_arr) {
             log_fatal("can't allocate mem for analyzr_printr_arr. exiting...");
             kill(getpid(), SIGTERM);
@@ -139,10 +150,18 @@ void *analyzer_routine()
     extern char *ring_buff_str;
 
     ring_buff_str = calloc(DEFAULT_STRING_SIZE, sizeof(char));
+    if(NULL == ring_buff_str) {
+        log_fatal("can't allocate mememory for ring_buff_str. exiting...");
+        kill(getpid(), SIGTERM);
+    }
     size_t curr_str_size = DEFAULT_STRING_SIZE;
     UINT cpu_count = 0;
 
     char *tmp_char = malloc(sizeof(char)); //to temporarily hold each char read form ring buffer.
+    if(NULL == tmp_char) {
+        log_fatal("can't allocate memory for tmp_char. exiting...");
+        kill(getpid(), SIGTERM);
+    }
     pthread_cleanup_push(free, tmp_char);
 
     while (1)
@@ -171,8 +190,9 @@ void *analyzer_routine()
                 cpu_count++;
         }
 
-        else // finished rading one cpu data
+        else // finished rading data for all cpus
         {
+            log_debug("finished reading data for all cpus");
             // allocating curr_stats only at the beginning 
             if (NULL == curr_stats)
                 cpu_stats_mem_alloc(&curr_stats, cpu_count);

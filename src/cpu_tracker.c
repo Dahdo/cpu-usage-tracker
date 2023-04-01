@@ -65,6 +65,8 @@ int main()
 
     // initializing ring buffer
     buffer = malloc(RING_BUFFER_SIZE * sizeof(char));
+    if(NULL == buffer)
+        ERR("can't allocate mememory for buffer");
     ring_buff = circular_buf_init(buffer, RING_BUFFER_SIZE);
 
     // initailizing semaphores
