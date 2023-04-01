@@ -20,6 +20,10 @@
 static char fd_read_single(int fd)
 {
     char *char_buff = malloc(sizeof(char));
+    if(NULL == char_buff) {
+        log_fatal("can't allocate char_buff. exiting...");
+        kill(getpid(), SIGTERM);
+    }
     int c = TEMP_FAILURE_RETRY(read(fd, char_buff, sizeof(char)));
     if (c < 0)
         log_error("can't read in fd_read_single");
@@ -65,6 +69,7 @@ void *reader_routine()
 
         SEMAPHORES_WAIT
         circular_buf_put(ring_buff, '|');
+        log_debug("finished reading data for all cpus");
         SEMAPHORES_POST
 
         close(fd);
