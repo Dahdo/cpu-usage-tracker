@@ -29,6 +29,7 @@ void *printer_routine()
             printf("\n");
             sem_post(&analyzr_printr_arr_sem);
             analyzr_printr_sync = 0;
+            log_debug("data printed");
         }
     }
     pthread_exit(0);
