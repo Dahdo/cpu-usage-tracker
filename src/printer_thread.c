@@ -3,6 +3,7 @@
 #include <stdatomic.h>
 #include <stdio.h>
 #include "../include/printer_thread.h"
+#include "../include/logger_thread.h"
 #include "../include/watchdog_thread.h"
 
 #define UINT unsigned int
