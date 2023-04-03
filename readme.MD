@@ -22,9 +22,6 @@ make vrun
 This will usually cause one of its threads to timeout due to additional valgrind load.
 
 
-To run tests
---------------------------------------------
-make test
 
 Licenses and Attributions
 -------------------------------------------
